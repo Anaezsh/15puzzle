@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body{
+      text-align: center;
+    }
+    img {
+      margin-right: 5px;
+      vertical-align: top;
+    }
+    #container {
+      width: 254px;
+      height: 254px;
+      margin: 20px auto;
+      box-sizing: border-box;
+      padding: 2px;
+      border: 4px solid blue;
+      position: relative;
+      background-color: blue;
+      box-shadow: 0px 5px 20px 5px grey;
+    }
+    span {
+      font-weight: bold;
+    }
+    div {
+      width: 60px;
+      height: 60px;
+      position: absolute;
+    }
+    .cell {
+      line-height: 60px;
+      background-color: lightblue;
+      border-radius: 5px 5px;
+      color: white;
+      text-align: center;
+      font-size: 30px;
+    }
+    .cell:hover {
+      cursor: pointer;
+    }
+
+  </style>
+  <link rel="chortcut icon" type="image/x-icon" href="icon.png">
+  <title>Пятнашки</title>
+</head>
+<body>
+  <p id="t"><img src="time.png" alt="time"><span></span></p>
+  <article id="container">
+    <div style="top:0px;left:0px;"></div>
+    <div style="top:0px;left:62px;"></div>
+    <div style="top:0px;left:124px;"></div>
+    <div style="top:0px;left:186px;"></div>
+    <div style="top:62px;left:0px;"></div>
+    <div  style="top:62px;left:62px;"></div>
+    <div style="top:62px;left:124px;"></div>
+    <div style="top:62px;left:186px;"></div>
+    <div style="top:124px;left:0px;"></div>
+    <div style="top:124px;left:62px;"></div>
+    <div style="top:124px;left:124px;"></div>
+    <div style="top:124px;left:186px;"></div>
+    <div style="top:186px;left:0px;"></div>
+    <div style="top:186px;left:62px;"></div>
+    <div style="top:186px;left:124px;"></div>
+    <div style="top:186px;left:186px;"></div>
+  </article>
+  <input type="button" value="Новая игра" onclick="startGame()">
+</body>
+<script>
+  var div = document.querySelectorAll("div");
+  var span = document.querySelector("span");
+  // координаты пустой ячейки
+  var emptyI;
+  var emptyJ;
+  // массив ячеек, расположенных рядом с пустой ячейкой
+  var cellArr = [];
+  // булевая переменая, дающая разрешение на проверку
+  var startCheckIfWin;
+  // номер таймера
+  var tId;
+
+  startGame();
+
+  function up(e) {
+    change(e);
+    ifWin()
+    emptyI++;
+    clear();
+    set();
+  }
+
+  function down(e) {
+    change(e);
+    ifWin()
+    emptyI--;
+    clear();
+    set();
+  }
+
+  function left(e) {
+    change(e);
+    ifWin()
+    emptyJ++;
+    clear();
+    set();
+  }
+
+  function right(e) {
+    change(e);
+    ifWin()
+    emptyJ--;
+    clear();
+    set();
+  }
+
+  function startGame(){
+    startCheckIfWin = false;
+    clearInterval(tId);
+    for (var i = 0; i < 4; i++) {
+      for (var j = 0; j < 4; j++) {
+        div[i*4+j].innerHTML = " ";
+        div[i*4+j].removeAttribute("onclick");
+        div[i*4+j].classList.remove("cell");
+        if(i*4+j < 15) {
+          div[i*4+j].innerHTML = i*4+j+1;
+          div[i*4+j].classList.add("cell");
+        }
+      }
+    }
+    for (var i = 0; i < cellArr.length; i++) {
+      cellArr.pop();
+    }
+    emptyI = 3;
+    emptyJ = 3;
+    set();
+    initialize();
+    showTime();
+  }
+
+  // установка обработчиков событий для ячеек
+  function set() {
+    if(emptyI > 0) {
+      div[(emptyI-1)*4+emptyJ].setAttribute("onclick","down(this)");
+      cellArr.push(div[(emptyI-1)*4+emptyJ]);
+    }
+    if(emptyI < 3) {
+      div[(emptyI+1)*4+emptyJ].setAttribute("onclick","up(this)");
+      cellArr.push(div[(emptyI+1)*4+emptyJ]);
+    }
+    if(emptyJ > 0) {
+      div[emptyI*4+emptyJ-1].setAttribute("onclick","right(this)");
+      cellArr.push(div[emptyI*4+emptyJ-1]);
+    }
+    if(emptyJ < 3) {
+      div[emptyI*4+emptyJ+1].setAttribute("onclick","left(this)");
+      cellArr.push(div[emptyI*4+emptyJ+1]);
+    }
+  }
+
+  // удаление обработчиков событий для ячеек
+  function clear() {
+    for (var i = 0; i < div.length; i++) {
+        div[i].removeAttribute("onclick");
+    }
+    for (var i = 0; i < cellArr.length; i++) {
+      cellArr.pop();
+    }
+  }
+
+  // замена содержимого ячеек
+  function change(el) {
+    var str = el.innerHTML;
+    el.innerHTML = " ";
+    el.classList.toggle("cell");
+    div[emptyI*4+emptyJ].classList.toggle("cell");
+    div[emptyI*4+emptyJ].innerHTML = str;
+  }
+
+  // перемешивание поля
+  function initialize() {
+    for (var i = 0; i < 200; i++) {
+      var cellInd = Math.floor(Math.random() * cellArr.length);
+      cellArr[cellInd].click();
+    }
+    startCheckIfWin = true;
+  }
+
+  // проверка на выигрыш
+  function ifWin() {
+    if(startCheckIfWin) {
+      var str = "";
+      for (var i = 0; i < div.length; i++) {
+        str += div[i].innerHTML;
+      }
+      if(str === "123456789101112131415 ") {
+        clearInterval(tId);
+        setTimeout(function() {
+          alert("Ура! Готово!");
+        },50);
+      }
+    }
+  }
+
+  // отображение времени
+  function showTime() {
+    var t = 0;
+    var show = "00:00";
+    span.innerHTML = show;
+    tId = setInterval(function() {
+      t++;
+      if(t<60){show = "00:" + zeroRender(t);}
+      else {
+        var main = Math.floor(t/60);
+        var rest = t - 60*main;
+        show = zeroRender(main) + ":" + zeroRender(rest);
+      }
+      span.innerHTML = show;
+    },1000);
+
+    function zeroRender(c) {
+      var str;
+      if(c<10) {str = "0" + c;}
+      if(c>9 && c<60) {str = "" + c;}
+      return str;
+    }
+  }
+</script>
+</html>
